@@ -1,5 +1,9 @@
 export type Position = { x: number; y: number };
 
+export type PositionId = `${string},${string}`;
+
+export const toPositionId = ({ x, y }: Position): PositionId => `${x},${y}`;
+
 type Vector = Position;
 
 export type Matrix = ReturnType<typeof toMatrix>;
@@ -29,11 +33,16 @@ export const toMatrix = (input: string) => {
 
   const hasPosition = defineUtil<boolean>((x, y) => at(x, y) !== undefined);
 
-  const reducePositions = <T>(fn: (acc: T, cur: string, position: Position) => T, initialValue: T) => {
-    let acc: T = initialValue;
+  const reducePositions = <T = undefined>(
+    // biome-ignore lint/suspicious/noConfusingVoidType:
+    fn: (acc: T, cur: string, position: Position, index: number) => T | void,
+    initialValue?: T,
+  ) => {
+    let acc: T = initialValue as T;
+    let index = 0;
     for (let y = 1; y <= matrix.length; ++y) {
       for (let x = 1; x <= matrix.length; ++x) {
-        acc = fn(acc, at(x, y)!, { x, y });
+        acc = fn(acc, at(x, y)!, { x, y }, index++) ?? acc;
       }
     }
     return acc;
